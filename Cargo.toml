@@ -1,0 +1,9 @@
+[package]
+name = "twenty"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iced = { version = "0.12.1", features = ["tokio"] }
+iced_sessionlock = "0.2.5"
+tokio = { version = "1.38.0", features = ["sync"] }
