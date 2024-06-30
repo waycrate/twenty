@@ -36,13 +36,10 @@ impl MultiApplication for Counter {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        Subscription::batch(vec![event::listen().map(Message::IcedEvent), {
-            if self.value > 1 {
-                time::every(Duration::from_secs(1)).map(|_| Message::DecrementCounter)
-            } else {
-                Subscription::none()
-            }
-        }])
+        Subscription::batch(vec![
+            event::listen().map(Message::IcedEvent),
+            time::every(Duration::from_secs(1)).map(|_| Message::DecrementCounter),
+        ])
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
