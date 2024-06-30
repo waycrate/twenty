@@ -41,19 +41,24 @@ fn main() {
 }
 
 fn init() {
-    let twenty_mins_minus_five_secs = time::Duration::from_secs(1195);
-    thread::sleep(twenty_mins_minus_five_secs);
+    let twenty_mins_minus_ten_secs = time::Duration::from_secs(1190);
+    thread::sleep(twenty_mins_minus_ten_secs);
 
     Notification::new()
-        .summary("5 seconds remaining before lock")
+        .summary("10 seconds remaining before lock")
         .body("Your screen will get locked for 20 seconds to make sure that you relax your eyes. Run twenty -k to stop.")
         .show()
         .unwrap();
 
-    let five_secs = time::Duration::from_secs(5);
-    thread::sleep(five_secs);
-
+    let ten_secs = time::Duration::from_secs(10);
+    thread::sleep(ten_secs);
     let _ = session_lock::lock();
+
+    loop {
+        if session_lock::UNLOCKED.load(std::sync::atomic::Ordering::Relaxed) {
+            init();
+        }
+    }
 }
 
 fn kill_twenty() {

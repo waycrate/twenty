@@ -1,5 +1,6 @@
 use iced::widget::{column, text};
 use iced::{event, time, Alignment, Command, Element, Event, Length, Subscription, Theme};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use iced_sessionlock::actions::UnLockAction;
@@ -12,7 +13,6 @@ pub fn lock() -> Result<(), iced_sessionlock::Error> {
 
 struct Counter {
     value: i32,
-    unlocked: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -22,6 +22,8 @@ enum Message {
     Unlock,
 }
 
+pub static UNLOCKED: AtomicBool = AtomicBool::new(false);
+
 impl MultiApplication for Counter {
     type Message = Message;
     type Flags = ();
@@ -29,13 +31,7 @@ impl MultiApplication for Counter {
     type Executor = iced::executor::Default;
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        (
-            Self {
-                value: 20,
-                unlocked: false,
-            },
-            Command::none(),
-        )
+        (Self { value: 20 }, Command::none())
     }
 
     fn namespace(&self) -> String {
@@ -64,18 +60,21 @@ impl MultiApplication for Counter {
                 }
             }
             Message::Unlock => {
-                self.unlocked = true;
+                UNLOCKED.store(true, Ordering::Relaxed);
                 Command::single(UnLockAction.into())
             }
         }
     }
 
     fn view(&self, _id: iced::window::Id) -> Element<Message> {
-        column![text(format!("{}s left", self.value)).size(100),]
-            .padding(200)
-            .align_items(Alignment::Center)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        column![
+            text(format!("{}s left", self.value)).size(100),
+            text("LOOK AWAY!").size(100)
+        ]
+        .padding(200)
+        .align_items(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 }
