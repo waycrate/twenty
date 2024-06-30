@@ -12,6 +12,7 @@ pub fn lock() -> Result<(), iced_sessionlock::Error> {
 
 struct Counter {
     value: i32,
+    unlocked: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -28,11 +29,17 @@ impl MultiApplication for Counter {
     type Executor = iced::executor::Default;
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        (Self { value: 20 }, Command::none())
+        (
+            Self {
+                value: 20,
+                unlocked: false,
+            },
+            Command::none(),
+        )
     }
 
     fn namespace(&self) -> String {
-        String::from("Counter - Iced")
+        String::from("Twenty - a 20-20-20 rule enforcer")
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -56,7 +63,10 @@ impl MultiApplication for Counter {
                     Command::perform(async {}, |_| Message::Unlock)
                 }
             }
-            Message::Unlock => Command::single(UnLockAction.into()),
+            Message::Unlock => {
+                self.unlocked = true;
+                Command::single(UnLockAction.into())
+            }
         }
     }
 

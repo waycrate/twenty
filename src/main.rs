@@ -26,6 +26,9 @@ fn main() {
             "-i" | "--init" => {
                 init();
             }
+            "-t" | "--test" => {
+                test();
+            }
             _ => {
                 main_log!("Invalid option '{}'.", args[1]);
                 exit(1);
@@ -43,7 +46,7 @@ fn init() {
 
     Notification::new()
         .summary("5 seconds remaining before lock")
-        .body("Your screen will get locked for 20 seconds to make sure that you relax your eyes")
+        .body("Your screen will get locked for 20 seconds to make sure that you relax your eyes. Run twenty -k to stop.")
         .show()
         .unwrap();
 
@@ -61,6 +64,10 @@ fn kill_twenty() {
             .output()
             .ok();
     }
+}
+
+fn test() {
+    let _ = session_lock::lock();
 }
 
 fn help() {
