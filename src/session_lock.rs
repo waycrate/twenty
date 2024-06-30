@@ -23,6 +23,7 @@ enum Message {
 }
 
 pub static UNLOCKED: AtomicBool = AtomicBool::new(false);
+pub static IS_DARKMODE: AtomicBool = AtomicBool::new(true);
 
 impl MultiApplication for Counter {
     type Message = Message;
@@ -47,10 +48,7 @@ impl MultiApplication for Counter {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::IcedEvent(event) => {
-                println!("hello {event:?}");
-                Command::none()
-            }
+            Message::IcedEvent(_event) => Command::none(),
             Message::DecrementCounter => {
                 if self.value > 0 {
                     self.value -= 1;
@@ -69,12 +67,20 @@ impl MultiApplication for Counter {
     fn view(&self, _id: iced::window::Id) -> Element<Message> {
         column![
             text(format!("{}s left", self.value)).size(100),
-            text("LOOK AWAY!").size(100)
+            text("Look away.").size(100)
         ]
         .padding(200)
         .align_items(Alignment::Center)
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
+    }
+
+    fn theme(&self) -> Theme {
+        if IS_DARKMODE.load(Ordering::Relaxed) {
+            Theme::Dark
+        } else {
+            Theme::Light
+        }
     }
 }

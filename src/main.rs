@@ -1,11 +1,11 @@
 mod session_lock;
 use notify_rust::Notification;
-use std::{cmp::Ordering, env, process::exit, thread, time};
+use std::{cmp, env, process::exit, sync::atomic, thread, time};
 
 #[macro_export]
-macro_rules! main_log {
+macro_rules! twenty_log {
     ($($arg:tt)*) => {
-        println!("\x1b[32mMain:\x1b[0m {}", format!($($arg)*));
+        println!("\x1b[32mTwenty:\x1b[0m {}", format!($($arg)*));
     };
 }
 
@@ -13,10 +13,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     match args.len().cmp(&1) {
-        Ordering::Equal => {
+        cmp::Ordering::Equal => {
             help();
         }
-        Ordering::Greater => match args[1].as_str() {
+        cmp::Ordering::Greater => match args[1].as_str() {
             "-h" | "--help" => {
                 help();
             }
@@ -24,23 +24,38 @@ fn main() {
                 kill_twenty();
             }
             "-i" | "--init" => {
+                if args.len() == 3 {
+                    match args[2].as_str() {
+                        "light" => {
+                            session_lock::IS_DARKMODE.store(false, atomic::Ordering::Relaxed);
+                        }
+                        "dark" => {
+                            session_lock::IS_DARKMODE.store(true, atomic::Ordering::Relaxed);
+                        }
+                        _ => {
+                            twenty_log!("Not a valid theme!");
+                            exit(1);
+                        }
+                    }
+                }
                 init();
             }
-            "-t" | "--test" => {
-                test();
+            "-l" | "--lightmode" => {
+                init();
             }
             _ => {
-                main_log!("Invalid option '{}'.", args[1]);
+                twenty_log!("Invalid option '{}'.", args[1]);
                 exit(1);
             }
         },
-        Ordering::Less => {
+        cmp::Ordering::Less => {
             exit(1);
         }
     }
 }
 
 fn init() {
+    twenty_log!("[Re]started twenty. Screen will be locked in 20 minutes for 20 seconds.");
     let twenty_mins_minus_ten_secs = time::Duration::from_secs(1190);
     thread::sleep(twenty_mins_minus_ten_secs);
 
@@ -55,7 +70,7 @@ fn init() {
     let _ = session_lock::lock();
 
     loop {
-        if session_lock::UNLOCKED.load(std::sync::atomic::Ordering::Relaxed) {
+        if session_lock::UNLOCKED.load(atomic::Ordering::Relaxed) {
             init();
         }
     }
@@ -71,10 +86,6 @@ fn kill_twenty() {
     }
 }
 
-fn test() {
-    let _ = session_lock::lock();
-}
-
 fn help() {
     let help_msg = format!(
         "\x1b[32m\x1b[1mTwenty \x1b[0m {}
@@ -83,11 +94,11 @@ fn help() {
 \x1b[33mUSAGE:\x1b[0m
     twenty \x1b[32m[OPTIONS]\x1b[0m
 
-\x1b[33mOPTIONS:\x1b[0m
+\x1b[33mOptions:\x1b[0m
     \x1b[32m-h, --help\x1b[0m
         Show this help message.
-    \x1b[32m-i, --init\x1b[0m
-        Initialize the program.
+    \x1b[32m-i, --init [dark/light]\x1b[0m
+        Initialize the program. Defaults to dark theme.
     \x1b[32m-k, --kill\x1b[0m
         Kill the program.
        
