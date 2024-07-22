@@ -102,7 +102,7 @@ fn help() {
     \x1b[32m-k, --kill\x1b[0m
         Kill the program.
        
-Link: \x1b[4m\x1b[34mhttps://github.com/rv178/twenty\x1b[0m",
+Link: \x1b[4m\x1b[34mhttps://github.com/waycrate/twenty\x1b[0m",
         env!("CARGO_PKG_VERSION")
     );
     println!("{}", help_msg);
