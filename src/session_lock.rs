@@ -64,7 +64,7 @@ impl MultiApplication for Counter {
         }
     }
 
-    fn view(&self, _id: iced::window::Id) -> Element<Message> {
+    fn view(&self, _id: iced::window::Id) -> Element<'_, Message> {
         column![
             text(format!("{}s left", self.value)).size(100),
             text("Look away.").size(100)
