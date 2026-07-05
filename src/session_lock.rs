@@ -1,18 +1,20 @@
 use iced::widget::{column, text};
-use iced::{event, time, Alignment, Command, Element, Event, Length, Subscription, Theme};
-use std::sync::atomic::{AtomicBool, Ordering};
+use iced::{Alignment, Command, Element, Event, Length, Subscription, Theme, event, time};
 use std::time::Duration;
 
-use iced_sessionlock::actions::UnLockAction;
-use iced_sessionlock::settings::Settings;
-use iced_sessionlock::MultiApplication;
+use iced_sessionlock::{MultiApplication, actions::UnLockAction, settings::Settings};
 
-pub fn lock() -> Result<(), iced_sessionlock::Error> {
-    Counter::run(Settings::default())
+pub fn lock(dark: bool, secs: u64) -> Result<(), iced_sessionlock::Error> {
+    let settings = Settings {
+        flags: (dark, secs),
+        ..Settings::default()
+    };
+    Counter::run(settings)
 }
 
 struct Counter {
-    value: i32,
+    value: u64,
+    dark: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -22,17 +24,15 @@ enum Message {
     Unlock,
 }
 
-pub static UNLOCKED: AtomicBool = AtomicBool::new(false);
-pub static IS_DARKMODE: AtomicBool = AtomicBool::new(true);
-
 impl MultiApplication for Counter {
     type Message = Message;
-    type Flags = ();
+    type Flags = (bool, u64);
     type Theme = Theme;
     type Executor = iced::executor::Default;
 
-    fn new(_flags: ()) -> (Self, Command<Message>) {
-        (Self { value: 20 }, Command::none())
+    fn new(flags: Self::Flags) -> (Self, Command<Message>) {
+        let (dark, secs) = flags;
+        (Self { value: secs, dark }, Command::none())
     }
 
     fn namespace(&self) -> String {
@@ -57,10 +57,7 @@ impl MultiApplication for Counter {
                     Command::perform(async {}, |_| Message::Unlock)
                 }
             }
-            Message::Unlock => {
-                UNLOCKED.store(true, Ordering::Relaxed);
-                Command::single(UnLockAction.into())
-            }
+            Message::Unlock => Command::single(UnLockAction.into()),
         }
     }
 
@@ -77,10 +74,6 @@ impl MultiApplication for Counter {
     }
 
     fn theme(&self) -> Theme {
-        if IS_DARKMODE.load(Ordering::Relaxed) {
-            Theme::Dark
-        } else {
-            Theme::Light
-        }
+        if self.dark { Theme::Dark } else { Theme::Light }
     }
 }

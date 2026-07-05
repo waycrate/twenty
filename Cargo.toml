@@ -1,10 +1,14 @@
 [package]
 name = "twenty"
-version = "0.1.0"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 
 [dependencies]
 iced = { version = "0.12.1", features = ["tokio"] }
 iced_sessionlock = "0.2.5"
 tokio = { version = "1.38.0", features = ["sync"] }
 notify-rust = "4"
+toml = "1.1.2"
+serde = { version = "1.0.228", features = ["derive"] }
+duration-str = { version = "0.21.0", features = ["time", "serde"] }
+daemonize = "0.5.0"
