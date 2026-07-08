@@ -1,54 +1,65 @@
+<p align=center>
+  <img src="./docs/assets/twenty.png" alt=twenty width=30%>
+  <p align="center">20-20-20 rule enforcer for compositors implementing ext-session-lock.<p>
+</p>
+
 # Twenty
 
-20-20-20 rule enforcer for compositors implementing ext-session-lock.
 Twenty makes sure that you look 20 ft away every 20 minutes for 20 seconds to relax your eyes.
 
 Uses [waycrate/exwlshelleventloop/iced_sessionlock](https://github.com/waycrate/exwlshelleventloop/tree/master/iced_sessionlock)
 for locking the screen.
 
-### Installing
-
-You can compile it using `cargo` or via [baker](https://github.com/rv178/baker).
-
-via baker
+### Installation
 
 ```
-bake setup
-bake
-sudo bake install
+cargo install twenty
 ```
-
-A binary will be copied to `./bin/twenty`
-
-via cargo 
-
-```
-cargo build --release
-```
-
-A binary will be copied to `./target/release/`
 
 ### Usage
 
-[] indicates optional arguments.
+Twenty runs as a daemon in the background. Sends a notification 10 seconds before locking the screen.
 
-#### Initializing the program.
+Initiaizing:
 
 ```
 twenty --init [light/dark]
 ```
-The lock screen defaults to dark mode unless specified otherwise.
 
-#### Killing the program
+Killing:
 
 ```
 twenty --kill
 ```
 
-### Uninstalling
+Pausing:
 
 ```
-sudo bake uninstall
+twenty --pause
 ```
+
+View status (running / paused / not running):
+
+```
+twenty --status
+```
+
+### Configuration
+
+You can configure twenty by creating a file in `~/.config/twenty/config.toml`.
+
+Example config:
+
+```toml
+theme = "dark"
+cooldown = "20m"
+lock_timer = "20s"
+blacklisted = ["steam", "mpv"]
+```
+
+- `theme`: theme of the locked screen, can either be `light` or `dark`.
+- `cooldown`: duration between successive locks.
+- `lock_timer`: duration of locking the screen.
+- `blacklisted`: twenty checks if these processes are running and prevents locking the screen.
 
 #### Authored by [rv178](https://github.com/rv178) and [shivkr6](https://github.com/shivkr6)

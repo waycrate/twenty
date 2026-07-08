@@ -4,6 +4,13 @@ mod session_lock;
 
 use std::{cmp, env, process::exit};
 
+pub const RESET: &str = "\x1b[0m";
+pub const GREEN: &str = "\x1b[32m";
+pub const YELLOW: &str = "\x1b[33m";
+pub const BLUE: &str = "\x1b[34m";
+pub const BOLD: &str = "\x1b[1m";
+pub const UNDERLINE: &str = "\x1b[4m";
+
 #[macro_export]
 macro_rules! twenty_log {
     ($($arg:tt)*) => {
@@ -59,26 +66,26 @@ fn main() {
 
 fn help() {
     let help_msg = format!(
-        "\x1b[32m\x1b[1mTwenty \x1b[0m {}
+        "{GREEN}{BOLD}twenty {RESET} {version}
     Twenty makes sure that you look 20 ft away every 20 minutes for 20 seconds.
 
-\x1b[33mUSAGE:\x1b[0m
-    twenty \x1b[32m[OPTIONS]\x1b[0m
+{YELLOW}USAGE:{RESET}
+    twenty {GREEN}[OPTIONS]{RESET}
 
-\x1b[33mOPTIONS:\x1b[0m
-    \x1b[32m-h, --help\x1b[0m
+{YELLOW}OPTIONS:{RESET}
+    {GREEN}-h, --help{RESET}
         Show this help message.
-    \x1b[32m-i, --init [dark/light]\x1b[0m
+    {GREEN}-i, --init [dark/light]{RESET}
         Initialize the program. Defaults to dark theme.
-    \x1b[32m-k, --kill\x1b[0m
+    {GREEN}-k, --kill{RESET}
         Kill the program.
-    \x1b[32m-p, --pause\x1b[0m
+    {GREEN}-p, --pause{RESET}
         Pause the program.
-    \x1b[32m-s, --status\x1b[0m
+    {GREEN}-s, --status{RESET}
         Show the status of the program (running / paused / not running).
-       
-Link: \x1b[4m\x1b[34mhttps://github.com/waycrate/twenty\x1b[0m",
-        env!("CARGO_PKG_VERSION")
+
+Link: {UNDERLINE}{BLUE}https://github.com/waycrate/twenty{RESET}",
+        version = env!("CARGO_PKG_VERSION"),
     );
     println!("{}", help_msg);
 }

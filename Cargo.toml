@@ -1,6 +1,14 @@
 [package]
 name = "twenty"
-version = "0.2.0"
+version = "0.2.1"
+authors = ["rv <hey@rohith.net>"]
+license = "MIT"
+description = "20-20-20 rule enforcer for compositors implementing ext-session-lock."
+homepage = "https://github.com/waycrate/twenty"
+repository = "https://github.com/waycrate/twenty"
+keywords = ["wayland", "wlroots"]
+categories = ["command-line-utilities"]
+readme = "README.md"
 edition = "2024"
 
 [dependencies]
