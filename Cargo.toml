@@ -1,6 +1,6 @@
 [package]
 name = "twenty"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["rv <hey@rohith.net>"]
 license = "MIT"
 description = "20-20-20 rule enforcer for compositors implementing ext-session-lock."

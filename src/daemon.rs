@@ -37,23 +37,39 @@ pub fn is_running() -> bool {
 
 #[derive(PartialEq, Clone, Copy)]
 enum State {
-    Running,
+    Running(u32),
     Paused,
+}
+
+impl State {
+    fn label(&self) -> &str {
+        match self {
+            State::Running(_) => "running",
+            State::Paused => "paused",
+        }
+    }
 }
 
 impl std::fmt::Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.write_str(match self {
-            State::Running => "running",
-            State::Paused => "paused",
-        })
+        match self {
+            State::Running(time) => write!(f, "running {}", time),
+            State::Paused => write!(f, "paused"),
+        }
     }
 }
 
 fn read_state() -> State {
-    match fs::read_to_string(state_path()).map(|s| s.trim().to_string()) {
-        Ok(s) if s == "paused" => State::Paused,
-        _ => State::Running,
+    let s = fs::read_to_string(state_path()).unwrap_or_default();
+    let mut parts = s.split_whitespace();
+    match parts.next() {
+        Some("paused") => State::Paused,
+        _ => State::Running(
+            parts
+                .next()
+                .and_then(|time| time.parse::<u32>().ok())
+                .unwrap_or(0),
+        ),
     }
 }
 
@@ -63,10 +79,22 @@ fn write_state(state: State) {
 
 // --status
 pub fn status() {
-    if is_running() {
-        twenty_log!("Currently {}.", read_state());
-    } else {
+    if !is_running() {
         twenty_log!("Not running.");
+        return;
+    }
+
+    match read_state() {
+        State::Running(time) => {
+            twenty_log!(
+                "Currently running. [{}m {}s remaining]",
+                time / 60,
+                time % 60
+            );
+        }
+        State::Paused => {
+            twenty_log!("Currently paused.");
+        }
     }
 }
 
@@ -77,15 +105,15 @@ pub fn toggle_pause() {
         return;
     }
     let next = match read_state() {
-        State::Paused => State::Running,
-        State::Running => State::Paused,
+        State::Paused => State::Running(0),
+        State::Running(_) => State::Paused,
     };
     write_state(next);
-    twenty_log!("Now {}.", next);
+    twenty_log!("Now {}.", next.label());
 
     Notification::new()
         .summary("Twenty: toggled status")
-        .body(&format!("Twenty is now {}.", next))
+        .body(&format!("Twenty is now {}.", next.label()))
         .show()
         .unwrap();
 }
@@ -122,13 +150,14 @@ pub fn start(cfg: Config) {
         return;
     }
 
-    write_state(State::Running);
+    write_state(State::Running(0));
     run_loop(cfg);
 }
 
 fn run_loop(cfg: Config) {
     loop {
-        countdown(cfg.cooldown);
+        // avoid integer underflow; leave 10s for the notification warning
+        countdown(cfg.cooldown.as_secs().max(10) as u32, 10);
 
         if blacklisted_running(&cfg.blacklisted) {
             Notification::new()
@@ -148,7 +177,7 @@ fn run_loop(cfg: Config) {
         }
 
         // wait 10 seconds before locking screen
-        thread::sleep(Duration::from_secs(10));
+        countdown(10, 0);
         if blacklisted_running(&cfg.blacklisted) || read_state() == State::Paused {
             continue;
         }
@@ -157,15 +186,15 @@ fn run_loop(cfg: Config) {
     }
 }
 
-fn countdown(secs: Duration) {
-    // avoid integer underflow; leave 10s for the notification warning
-    let mut remaining = secs.as_secs().saturating_sub(10);
-    while remaining > 0 {
+fn countdown(from: u32, to: u32) {
+    let mut remaining = from;
+    while remaining > to {
         thread::sleep(Duration::from_secs(1));
         if read_state() == State::Paused {
             continue;
         }
         remaining -= 1;
+        write_state(State::Running(remaining));
     }
 }
 
